@@ -70,8 +70,8 @@ app.use("/uploads", express.static("uploads"));
 // Initialize app
 initApp(app);
 
-app.get("/", (res) => {
-  res.json({ message: "welcome to booking project" });
+app.get("/", (req, res) => {
+  return res.status(200).json({ message: "Welcome to booking API project" });
 });
 
 app.listen(config.port, () => {

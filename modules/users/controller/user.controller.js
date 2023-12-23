@@ -1,10 +1,10 @@
 const User = require("../Model/user.model");
 const bcrypt = require("bcrypt");
-const { StatusCodes, BAD_REQUEST } = require("http-status-codes");
+const { StatusCodes } = require("http-status-codes");
 const ErrorResponse = require("../../../common/utils/errorResponse");
 
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
+// const nodemailer = require("nodemailer");
 
 const { OAuth2Client } = require("google-auth-library");
 const nanoid = require("../../../common/config/nanoId");
@@ -13,13 +13,13 @@ const client = new OAuth2Client(
   "628230144726-m8ftqlck1dqg9dduufvg8l099e5iihn9.apps.googleusercontent.com"
 );
 
-let transporter = nodemailer.createTransport({
-  service: "gmail", // true for 465, false for other ports
-  auth: {
-    user: "routeacademycairo3@gmail.com", // generated ethereal user
-    pass: "Routeegypt20110100", // generated ethereal password
-  },
-});
+// let transporter = nodemailer.createTransport({
+//   service: "gmail", // true for 465, false for other ports
+//   auth: {
+//     user: "routeacademycairo3@gmail.com", // generated ethereal user
+//     pass: "Routeegypt20110100", // generated ethereal password
+//   },
+// });
 
 const getAllUsers = async (req, res) => {
   const users = await User.find({}).select("-password");
@@ -84,7 +84,7 @@ const verifyEmail = async (req, res) => {
           res.json({ message: "verified" });
         } else {
           try {
-            const updatedUser = await User.updateOne(
+            await User.updateOne(
               { email: decoded.email },
               { verified: true }
             );

@@ -7,7 +7,7 @@ const logger = require("../../../common/config/logger");
 
 const findAll = async (req, res, next) => {
   try {
-    const { page, limit: size } = req.query;
+    const { page, size } = req.query;
     const { limit, skip } = paginationService(page, size);
 
     const rooms = await Room.find({})

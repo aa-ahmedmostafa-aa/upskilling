@@ -25,7 +25,7 @@ const generateRandomIntegerInRange = (min, max) =>
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    cb(null, path.join(__dirname, "../../tmp"));
+    cb(null, "uploads/");
   },
   filename(req, file, cb) {
     let uniqueIdentifier = generateRandomIntegerInRange(100, 1000000);

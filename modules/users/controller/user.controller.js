@@ -8,6 +8,7 @@ const nodemailer = require("nodemailer");
 
 const { OAuth2Client } = require("google-auth-library");
 const nanoid = require("../../../common/config/nanoId");
+const logger = require("../../../common/config/logger");
 const client = new OAuth2Client(
   "628230144726-m8ftqlck1dqg9dduufvg8l099e5iihn9.apps.googleusercontent.com"
 );
@@ -56,10 +57,14 @@ const signUp = async (req, res, next) => {
         data: { user },
       });
     }
-  } catch (errors) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "error", ...errors });
+  } catch (error) {
+    logger.error("Error while creating user ", error);
+    next(
+      new ErrorResponse(
+        error,
+        error.status || StatusCodes.INTERNAL_SERVER_ERROR
+      )
+    );
   }
 
   // try {

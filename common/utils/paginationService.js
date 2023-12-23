@@ -11,9 +11,9 @@ const paginationService = (page, size) => {
     size = PAGE_LIMIT;
   }
   const limit = parseInt(size);
-  const offset = (page - 1) * size;
+  const skip = (page - 1) * size;
 
-  return { limit, offset };
+  return { limit, skip };
 };
 
 module.exports = paginationService;

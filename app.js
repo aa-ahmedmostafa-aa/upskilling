@@ -10,30 +10,19 @@ const helmet = require("helmet");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 
-
-
 const app = express();
-
-
 
 // var cron = require("node-cron");
 // const dailyEmail = require("./common/jobs/dailyEmail");
 // const jobs = require("./common/jobs");
 const config = require("./common/config/configuration");
 
-
-
 const initApp = require("./common/init");
-
-
 
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
   max: 500, // limit each IP to 100 requests per windowMs
 });
-
-
-
 
 app.use(express.json());
 // Used to enable CORS
@@ -81,7 +70,9 @@ app.use("/uploads", express.static("uploads"));
 // Initialize app
 initApp(app);
 
-
+app.get("/", (res) => {
+  res.json({ message: "welcome to booking project" });
+});
 
 app.listen(config.port, () => {
   console.log(`backend is up & running on port ${config.port}`);

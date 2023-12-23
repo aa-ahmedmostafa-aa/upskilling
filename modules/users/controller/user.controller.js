@@ -38,9 +38,7 @@ const signUp = async (req, res, next) => {
     } else {
       const user = new User(req.body);
       await user.save();
-      // const token = jwt.sign({ email }, "shhhhh", {
-      //   expiresIn: "1h",
-      // });
+      const token = jwt.sign({ _id: user._id }, "shhhhh", {});
       // let info = await transporter.sendMail({
       //   from: '"Node project 👻" <foo@example.com>', // sender address
       //   to: email, // list of receivers
@@ -84,10 +82,7 @@ const verifyEmail = async (req, res) => {
           res.json({ message: "verified" });
         } else {
           try {
-            await User.updateOne(
-              { email: decoded.email },
-              { verified: true }
-            );
+            await User.updateOne({ email: decoded.email }, { verified: true });
             res.json({ message: "verified" });
           } catch (error) {
             res.json({ error });
@@ -122,11 +117,7 @@ const sign_in = async (req, res) => {
         res.status(StatusCodes.OK).json({
           message: "success",
           token,
-          data: {
-            _id: user._id,
-            email: user.email,
-            role: user.role,
-          },
+          data: { user },
         });
       } else {
         res

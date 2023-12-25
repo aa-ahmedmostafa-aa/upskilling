@@ -37,31 +37,27 @@ const _sendEmail = async (email, subject, text) => {
   );
 };
 
-const _sendHtmlEmail = async (email, subject) => {
+const _sendHtmlEmail = async (email, subject, html) => {
   const msg = {
-    to: 'a.moustafa@aydi.com',
+    to: email,
     from: `${config.SMTP_SENDER}`,
     subject: subject,
-    html: "<h1>Hello</h1>",
+    html,
   };
 
   const transporter = await createTransport();
 
   transporter
     .sendMail(msg)
-    .then((info) => console.log(info))
-    .catch((error) => console.log(error));
-
-  // .then((info) => {
-  //   logger.info(JSON.stringify(info));
-  //   console.log("Message sent: %s", info.messageId);
-  //   // Preview only available when sending through an Ethereal account
-  //   console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-  // })
-  // .catch((error) => {
-  //   logger.error(JSON.stringify(error.message));
-  //   throw new Error(JSON.stringify(error.message));
-  // });
+    .then((info) => {
+      logger.info(JSON.stringify(info));
+      console.log("Message sent: %s", info.messageId);
+      console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    })
+    .catch((error) => {
+      logger.error(JSON.stringify(error.message));
+      throw new Error(JSON.stringify(error.message));
+    });
 };
 
 const sendVerificationEmail = async (token, name, email) => {
@@ -71,10 +67,15 @@ const sendVerificationEmail = async (token, name, email) => {
   return _sendHtmlEmail(email, subject, html);
 };
 
-const sendPasswordResetEmail = async (token, name, email) => {
+const sendPasswordResetEmail = async (resetPasswordCode, name, email) => {
   const subject = "Booking  Password Reset";
-  const resetLink = `http://localhost:3000/home/NewPassword/${token}`;
-  const html = require("./templates/resetPassword")(resetLink, name);
+  const html = require("./templates/resetPassword")(
+    resetPasswordCode,
+    name,
+    config.PRODUCT_NAME,
+    config.COMPANY_NAME,
+    config.CONTACT_US_URL
+  );
   return _sendHtmlEmail(email, subject, html);
 };
 

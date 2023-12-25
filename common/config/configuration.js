@@ -30,6 +30,9 @@ const config = {
   sendgrid: {
     apikey: process.env.SENDGRID_API_KEY,
   },
+  CONTACT_US_URL: process.env.CONTACT_US_URL,
+  COMPANY_NAME: process.env.COMPANY_NAME,
+  PRODUCT_NAME: process.env.PRODUCT_NAME,
   SMTP_HOST: process.env.SMTP_HOST,
   SMTP_PORT: parseInt(process.env.SMTP_PORT || ""),
   SMTP_USER_NAME: process.env.SMTP_USER_NAME,

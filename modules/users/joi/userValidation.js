@@ -52,14 +52,18 @@ module.exports = {
       .required(),
   },
   userPasswordResetSchema: {
-    params: Joi.object()
-      .keys({
-        token: Joi.string().required(),
-      })
-      .required(),
     body: Joi.object()
       .keys({
+        email: Joi.string().required(),
         password: Joi.string().required(),
+        confirmPassword: Joi.string()
+          .required()
+          .valid(Joi.ref("password"))
+          .required()
+          .messages({
+            "any.only": "Confirm password does not match password",
+          }),
+        seed: Joi.string().required(),
       })
       .required(),
   },

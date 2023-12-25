@@ -21,7 +21,7 @@ router.post(
   userController.login
 );
 
-router.patch(
+router.post(
   "/change-password",
   isAuthorized(userEndPoints.endpoints.USER_CHANGE_PASSWORD),
   validateRequest(userValidation.userChangePasswordSchema),
@@ -34,7 +34,7 @@ router.post(
 );
 
 router.post(
-  "/reset-password/:token",
+  "/reset-password",
   validateRequest(userValidation.userPasswordResetSchema),
   userController.resetPassword
 );

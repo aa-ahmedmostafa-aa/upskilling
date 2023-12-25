@@ -11,6 +11,7 @@ const { userTypes } = require("../helpers/constants");
 const paginationService = require("../../../common/utils/paginationService");
 const config = require("../../../common/config/configuration");
 const { randomBytes } = require("crypto");
+const ResetRequest = require("../Model/resetRequest.model");
 
 const findAll = async (req, res, next) => {
   try {
@@ -238,24 +239,25 @@ const forgotPassword = async (req, res, next) => {
     if (!user) {
       throw new Error("Invalid Email Address");
     }
-    const resetPasswordToken = jwt.sign(
-      { id: user.id, type: "Verify" },
-      config.jwt.key,
-      {
-        algorithm: "HS256",
-      }
-    );
+
+    const resetRequestFound = await ResetRequest.findOne({ userId: user._id });
+    if (resetRequestFound) {
+      return res.status(StatusCodes.CREATED).json({
+        success: true,
+        message:
+          "Password reset request, already sent successfully ,check your email",
+        data: null,
+      });
+    }
 
     const resetPasswordCode = randomBytes(2).toString("hex");
-
-    const resetPasswordExpiration = Date.now() + Math.abs(3600000 * 4);
-    const updatedPayload = {
-      resetPasswordToken,
-      resetPasswordExpiration,
-      resetPasswordCode,
+    const resetRequestPayload = {
+      seed: resetPasswordCode,
+      userId: user._id,
     };
 
-    await User.updateOne({ _id: user.id }, updatedPayload);
+    const resetPasswordRequest = new ResetRequest(resetRequestPayload);
+    await resetPasswordRequest.save();
 
     await EmailService.sendPasswordResetEmail(
       resetPasswordCode,
@@ -283,29 +285,40 @@ const forgotPassword = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
   try {
-    const { token } = req.params;
-    const { password } = req.body;
-    const salt = await bcrypt.genSalt(+config.salt);
-    const selector = {
-      resetPasswordToken: token,
-      resetPasswordExpiration: { [Op.gte]: new Date() },
-    };
+    const { email, password, seed } = req.body;
     const user = await User.findOne({
-      where: selector,
-      raw: true,
+      email,
     });
     if (!user) {
-      throw new Error("No valid token found");
+      throw new Error("Invalid Email Address");
     }
+
+    const resetRequest = await ResetRequest.findOne({ userId: user._id });
+
+    if (!resetRequest) {
+      return next(
+        new ErrorResponse(
+          "Cannot find any reset requests for you please try to reset again",
+          StatusCodes.NOT_FOUND
+        )
+      );
+    }
+    if (seed !== resetRequest.seed) {
+      return next(
+        new ErrorResponse("Invalid verification code", StatusCodes.BAD_REQUEST)
+      );
+    }
+    const salt = await bcrypt.genSalt(+config.salt);
 
     const hashedPassword = await bcrypt.hash(password, salt);
     const updatedPayload = {
-      resetPasswordToken: null,
-      resetPasswordExpiration: null,
       password: hashedPassword,
     };
-    await User.update(updatedPayload, { where: { id: user.id } });
-    return res.status(OK).json({
+
+    await User.updateOne({ _id: user._id }, updatedPayload);
+    await ResetRequest.deleteOne({ userId: user._id });
+    
+    return res.status(StatusCodes.OK).json({
       success: true,
       message: "User Password Reset successfully",
       data: null,

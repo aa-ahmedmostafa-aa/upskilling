@@ -61,7 +61,6 @@ const signUp = async (req, res, next) => {
       );
     } else {
       let profileImage;
-      console.log(file);
       if (file && file.path) {
         profileImage = file.path;
       } else {
@@ -317,7 +316,7 @@ const resetPassword = async (req, res, next) => {
 
     await User.updateOne({ _id: user._id }, updatedPayload);
     await ResetRequest.deleteOne({ userId: user._id });
-    
+
     return res.status(StatusCodes.OK).json({
       success: true,
       message: "User Password Reset successfully",

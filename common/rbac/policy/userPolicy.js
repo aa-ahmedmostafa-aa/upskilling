@@ -1,3 +1,8 @@
-const { endpoints } = require("../../../modules/users/helpers/constants");
+const {
+  endpoints: UserEndPoints,
+} = require("../../../modules/users/helpers/constants");
 
-module.exports = [endpoints.USER_CHANGE_PASSWORD];
+module.exports = [
+  UserEndPoints.USER_CHANGE_PASSWORD,
+  UserEndPoints.USER_GET_USER,
+];

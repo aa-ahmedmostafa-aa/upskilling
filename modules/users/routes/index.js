@@ -6,8 +6,16 @@ const userEndPoints = require("../helpers/constants");
 const router = require("express").Router();
 const { upload } = require("../../../common/middelware/uploadFile");
 
-router.get("/", userController.findAll);
-router.get("/:_id", userController.findOne);
+router.get(
+  "/",
+  isAuthorized(userEndPoints.endpoints.USER_GET_ALL_USERS),
+  userController.findAll
+);
+router.get(
+  "/:_id",
+  isAuthorized(userEndPoints.endpoints.USER_GET_USER),
+  userController.findOne
+);
 router.post(
   "/",
   upload.single("profileImage"),

@@ -10,7 +10,7 @@ const logger = require("../../../common/config/logger");
 const { userTypes } = require("../helpers/constants");
 const paginationService = require("../../../common/utils/paginationService");
 const config = require("../../../common/config/configuration");
-const  randomBytes = require("crypto");
+const { randomBytes } = require("crypto");
 
 const findAll = async (req, res, next) => {
   try {
@@ -246,14 +246,13 @@ const forgotPassword = async (req, res, next) => {
       }
     );
 
-   const resetPasswordCode = randomBytes(2).toString("hex");
-
+    const resetPasswordCode = randomBytes(2).toString("hex");
 
     const resetPasswordExpiration = Date.now() + Math.abs(3600000 * 4);
     const updatedPayload = {
       resetPasswordToken,
       resetPasswordExpiration,
-      resetPasswordCode
+      resetPasswordCode,
     };
 
     await User.updateOne({ _id: user.id }, updatedPayload);

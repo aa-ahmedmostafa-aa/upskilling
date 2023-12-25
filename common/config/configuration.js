@@ -30,6 +30,12 @@ const config = {
   sendgrid: {
     apikey: process.env.SENDGRID_API_KEY,
   },
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || ""),
+  SMTP_USER_NAME: process.env.SMTP_USER_NAME,
+  SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+  SMTP_SENDER: process.env.SMTP_SENDER,
+  SMTP_RECEIVER: process.env.SMTP_RECEIVER,
 };
 
 module.exports = config;

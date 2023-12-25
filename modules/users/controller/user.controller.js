@@ -2,43 +2,83 @@ const User = require("../Model/user.model");
 const bcrypt = require("bcrypt");
 const { StatusCodes } = require("http-status-codes");
 const ErrorResponse = require("../../../common/utils/errorResponse");
-
+const { validatePassword, toAuthJSON } = require("../helpers/utils");
 const jwt = require("jsonwebtoken");
-// const nodemailer = require("nodemailer");
+const EmailService = require("../../../common/services/emailService");
 
-const { OAuth2Client } = require("google-auth-library");
-const nanoid = require("../../../common/config/nanoId");
 const logger = require("../../../common/config/logger");
-const client = new OAuth2Client(
-  "628230144726-m8ftqlck1dqg9dduufvg8l099e5iihn9.apps.googleusercontent.com"
-);
+const { userTypes } = require("../helpers/constants");
+const paginationService = require("../../../common/utils/paginationService");
+const config = require("../../../common/config/configuration");
 
-// let transporter = nodemailer.createTransport({
-//   service: "gmail", // true for 465, false for other ports
-//   auth: {
-//     user: "routeacademycairo3@gmail.com", // generated ethereal user
-//     pass: "Routeegypt20110100", // generated ethereal password
-//   },
-// });
+const findAll = async (req, res, next) => {
+  try {
+    const { page, size } = req.query;
+    const { limit, skip } = paginationService(page, size);
 
-const getAllUsers = async (req, res) => {
-  const users = await User.find({}).select("-password");
-  res.json({ message: "All users", data: users });
+    const users = await User.find({})
+      .select("-password")
+      .limit(limit)
+      .skip(skip);
+
+    const totalCount = await User.countDocuments();
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "success",
+      data: { users, totalCount },
+    });
+  } catch (error) {
+    logger.error("Error while fetching all users ", error);
+    next(
+      new ErrorResponse(
+        error,
+        error.status || StatusCodes.INTERNAL_SERVER_ERROR
+      )
+    );
+  }
 };
 
 const signUp = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const { file, body } = req;
+    const { email, userName, role } = body;
 
-    const user = await User.findOne({ email });
+    // Define the search criteria
+    const searchCriteria = {
+      $or: [{ email }, { userName }],
+    };
+
+    const user = await User.findOne(searchCriteria);
     if (user) {
       return next(
-        new ErrorResponse("email is already exists", StatusCodes.BAD_REQUEST)
+        new ErrorResponse(
+          "email or userName  is already exists",
+          StatusCodes.BAD_REQUEST
+        )
       );
     } else {
-      const user = new User(req.body);
-      await user.save();
-      const token = jwt.sign({ _id: user._id }, "shhhhh", {});
+      let profileImage;
+      console.log(file);
+      if (file && file.path) {
+        profileImage = file.path;
+      } else {
+        return next(
+          new ErrorResponse(
+            "profile image is required or not an image.",
+            StatusCodes.BAD_REQUEST
+          )
+        );
+      }
+
+      const user = new User({ ...body, profileImage });
+      const userCreated = await user.save();
+
+      if (role == userTypes.USER) {
+        //send email verification
+      }
+
+      // const token = jwt.sign({ _id: user._id }, "shhhhh", {});
       // let info = await transporter.sendMail({
       //   from: '"Node project 👻" <foo@example.com>', // sender address
       //   to: email, // list of receivers
@@ -52,7 +92,7 @@ const signUp = async (req, res, next) => {
       res.status(StatusCodes.CREATED).json({
         success: true,
         message: "User created successfully",
-        data: { user },
+        data: { userCreated },
       });
     }
   } catch (error) {
@@ -98,104 +138,213 @@ const verifyEmail = async (req, res) => {
     res.json({ error: "error" });
   }
 };
-const sign_in = async (req, res) => {
-  const { email, password } = req.body;
+const login = async (req, res, next) => {
   try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ message: "email is not found" });
-    } else {
-      const match = await bcrypt.compare(password, user.password);
-      if (match) {
-        const token = jwt.sign({ _id: user._id, role: user.role }, "shhhhh", {
-          expiresIn: "1h",
-        });
-        // var decoded = jwt.verify(token, 'shhhhh');
+    const { email, password } = req.body;
+    const found = await User.findOne({
+      email,
+    });
 
-        res.status(StatusCodes.OK).json({
-          message: "success",
-          token,
-          data: { user },
-        });
-      } else {
-        res
-          .status(StatusCodes.BAD_REQUEST)
-          .json({ message: "incorrect password" });
-      }
+    if (!found) {
+      return next(
+        new ErrorResponse(
+          "Login failed, No account with this e-mail",
+          StatusCodes.NOT_FOUND
+        )
+      );
     }
+    const isMatch = await validatePassword(password, found.password);
+    if (!isMatch) {
+      return next(
+        new ErrorResponse(
+          "Login Failed, please make sure password is correct!",
+          StatusCodes.UNAUTHORIZED
+        )
+      );
+    }
+    const data = toAuthJSON(found);
+    const user = await User.findOne({
+      email,
+    }).select("-password"); // Exclude the password field
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "User logged in successfully",
+      data: { user, token: data.token },
+    });
   } catch (error) {
-    res.json({ message: "error", error });
+    const errors = error.errors
+      ? error.errors.map((e) => e.message)
+      : error.message;
+    logger.error("Error while login ", errors);
+    next(
+      new ErrorResponse(
+        errors,
+        error.status || StatusCodes.INTERNAL_SERVER_ERROR
+      )
+    );
   }
 };
-const googleLogin = async (req, res) => {
-  const { tokenId, googleId } = req.body;
-  client
-    .verifyIdToken({
-      idToken: tokenId,
-      audience:
-        "628230144726-m8ftqlck1dqg9dduufvg8l099e5iihn9.apps.googleusercontent.com",
-    })
-    .then(async (result) => {
-      const { payload } = result;
-      if (payload.email_verified) {
-        const user = await User.findOne({ googleId });
-        if (user) {
-          const token = jwt.sign({ _id: user._id, role: user.role }, "shhhhh", {
-            expiresIn: "1h",
-          });
-          res.status(StatusCodes.OK).json({
-            message: "success",
-            token,
-            data: {
-              _id: user._id,
-              email: user.email,
-              role: user.role,
-            },
-          });
-        } else {
-          const newUser = new User({
-            name: payload.name,
-            email: payload.email,
-            role: "user",
-            googleId,
-            verified: true,
-            password: nanoid(),
-          });
-          const savedUser = await newUser.save();
-          const token = jwt.sign(
-            { _id: savedUser._id, role: savedUser.role },
-            "shhhhh",
-            {
-              expiresIn: "1h",
-            }
-          );
-          res.status(StatusCodes.OK).json({
-            message: "success",
-            token,
-            data: {
-              _id: savedUser._id,
-              email: savedUser.email,
-              role: savedUser.role,
-            },
-          });
-        }
-      } else {
-        res.json({ message: "email not verified" });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-};
-const getUser = async (req, res) => {
-  let { id } = req.params;
+
+const changePassword = async (req, res, next) => {
+  const { oldPassword, newPassword } = req.body;
+  const { user } = req;
   try {
-    const user = await User.findOne({ _id: id });
-    res.json({ message: "success", user });
+    const userData = await User.findOne({ _id: user._id });
+    const isMatch = await validatePassword(oldPassword, userData.password);
+
+    if (!isMatch) {
+      return next(
+        new ErrorResponse(
+          "please make sure old password is correct!",
+          StatusCodes.UNAUTHORIZED
+        )
+      );
+    }
+
+    const newPasswordHashed = await bcrypt.hash(newPassword, 8);
+
+    const updatedPayload = {
+      password: newPasswordHashed,
+    };
+
+    await User.updateOne({ _id: user._id }, updatedPayload);
+
+    return res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: "Password changed successfully",
+      data: null,
+    });
   } catch (error) {
-    res.json({ message: "error", error });
+    const errors = error.errors
+      ? error.errors.map((e) => e.message)
+      : error.message;
+    logger.error("Error changing password", errors);
+    next(
+      new ErrorResponse(
+        errors,
+        error.status || StatusCodes.INTERNAL_SERVER_ERROR
+      )
+    );
+  }
+};
+
+const forgotPassword = async (req, res, next) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({
+      email,
+    });
+    if (!user) {
+      throw new Error("Invalid Email Address");
+    }
+    const resetPasswordToken = jwt.sign(
+      { id: user.id, type: "Verify" },
+      config.jwt.key,
+      {
+        algorithm: "HS256",
+      }
+    );
+    const resetPasswordExpiration = Date.now() + Math.abs(3600000 * 4);
+    const updatedPayload = {
+      resetPasswordToken,
+      resetPasswordExpiration,
+    };
+
+    await User.updateOne({ _id: user.id }, updatedPayload);
+
+    await EmailService.sendPasswordResetEmail(
+      resetPasswordToken,
+      user.userName,
+      user.email
+    );
+    return res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: "Password reset token sent successfully",
+      data: null,
+    });
+  } catch (error) {
+    const errors = error.errors
+      ? error.errors.map((e) => e.message)
+      : error.message;
+    logger.error("Error creating reset password token ", errors);
+    next(
+      new ErrorResponse(
+        errors,
+        error.status || StatusCodes.INTERNAL_SERVER_ERROR
+      )
+    );
+  }
+};
+
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+    const salt = await bcrypt.genSalt(+config.salt);
+    const selector = {
+      resetPasswordToken: token,
+      resetPasswordExpiration: { [Op.gte]: new Date() },
+    };
+    const user = await User.findOne({
+      where: selector,
+      raw: true,
+    });
+    if (!user) {
+      throw new Error("No valid token found");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const updatedPayload = {
+      resetPasswordToken: null,
+      resetPasswordExpiration: null,
+      password: hashedPassword,
+    };
+    await User.update(updatedPayload, { where: { id: user.id } });
+    return res.status(OK).json({
+      success: true,
+      message: "User Password Reset successfully",
+      data: null,
+    });
+  } catch (error) {
+    const errors = error.errors
+      ? error.errors.map((e) => e.message)
+      : error.message;
+    logger.error("Error resetting user password ", errors);
+    next(
+      new ErrorResponse(
+        errors,
+        error.status || StatusCodes.INTERNAL_SERVER_ERROR
+      )
+    );
+  }
+};
+
+const findOne = async (req, res, next) => {
+  try {
+    const { _id } = req.params;
+    const found = await User.findOne({ _id }).select("-password");
+    if (!found) {
+      return next(
+        new ErrorResponse(
+          `there is no user with #_id: ${_id}`,
+          StatusCodes.BAD_REQUEST
+        )
+      );
+    }
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "success",
+      data: { user: found },
+    });
+  } catch (error) {
+    logger.error("Error while fetching user details ", error);
+    next(
+      new ErrorResponse(
+        error,
+        error.status || StatusCodes.INTERNAL_SERVER_ERROR
+      )
+    );
   }
 };
 
@@ -221,12 +370,14 @@ const updateUser = async (req, res) => {
 };
 
 module.exports = {
-  getAllUsers,
+  findAll,
   signUp,
-  getUser,
+  findOne,
   deleteUser,
   updateUser,
-  sign_in,
+  login,
   verifyEmail,
-  googleLogin,
+  forgotPassword,
+  resetPassword,
+  changePassword,
 };

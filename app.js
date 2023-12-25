@@ -25,6 +25,7 @@ const limiter = rateLimit({
 });
 
 app.use(express.json());
+
 // Used to enable CORS
 app.use(
   cors({

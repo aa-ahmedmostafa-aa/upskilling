@@ -1,3 +1,3 @@
-// const { GET_ALL_POSTS, ADD_POST } = require("../../../modules/posts/endpoints");
+const { endpoints } = require("../../../modules/users/helpers/constants");
 
-module.exports = [];
+module.exports = [endpoints.USER_CHANGE_PASSWORD];

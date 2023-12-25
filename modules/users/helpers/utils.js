@@ -7,25 +7,19 @@ class Utils {
     return bcrypt.compare(enteredPassword, password);
   };
 
-  static generateJWT = ({ id, role, verified, adminGroup, userType }) => {
-    return jwt.sign(
-      { id, role, verified, adminGroup, userType },
-      config.jwt.key,
-      {
-        algorithm: "HS256",
-        expiresIn: config.jwt.expire,
-      }
-    );
+  static generateJWT = ({ _id, role, verified }) => {
+    return jwt.sign({ _id, role, verified }, config.jwt.key, {
+      algorithm: "HS256",
+      expiresIn: config.jwt.expire,
+    });
   };
 
   static toAuthJSON = (user) => {
-    const { id, role, verified, adminGroup, userType } = user;
+    const { _id, role, verified } = user;
     const token = this.generateJWT({
-      id,
+      _id: _id,
       role,
       verified,
-      adminGroup,
-      userType,
     });
     return {
       token: `Bearer ${token}`,

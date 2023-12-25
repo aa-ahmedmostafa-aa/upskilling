@@ -14,7 +14,20 @@ const userSchema = new mongoose.Schema(
       default: userTypes.USER,
     },
     verificationCode: { type: String },
+    profileImage: { type: String },
     verified: { type: Boolean, default: false },
+    verificationToken: {
+      type: String,
+    },
+    verificationTokenExpiration: {
+      type: Date,
+    },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpiration: {
+      type: Date,
+    },
   },
   {
     collection: "users",

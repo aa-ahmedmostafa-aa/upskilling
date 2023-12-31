@@ -1,16 +1,12 @@
-const userController = require("../controller/user.controller");
-const validateRequest = require("../../../common/middelware/validateRequest");
-const isAuthorized = require("../../../common/middelware/isAuthoraized");
-const userValidation = require("../joi/userValidation");
-const userEndPoints = require("../helpers/constants");
+const userController = require("../../controller/user.controller");
+const validateRequest = require("../../../../common/middelware/validateRequest");
+const isAuthorized = require("../../../../common/middelware/isAuthoraized");
+const userValidation = require("../../joi/userValidation");
+const userEndPoints = require("../../helpers/constants");
 const router = require("express").Router();
-const { upload } = require("../../../common/middelware/uploadFile");
+const { upload } = require("../../../../common/middelware/uploadFile");
 
-router.get(
-  "/",
-  isAuthorized(userEndPoints.endpoints.USER_GET_ALL_USERS),
-  userController.findAll
-);
+
 router.get(
   "/:_id",
   isAuthorized(userEndPoints.endpoints.USER_GET_USER),
@@ -47,9 +43,9 @@ router.post(
   userController.resetPassword
 );
 
-router.get("/verify/:token", userController.verifyEmail);
+// router.get("/verify/:token", userController.verifyEmail);
 
-router.delete("/:id", userController.deleteUser);
-router.put("/:id", userController.updateUser);
+// router.delete("/:id", userController.deleteUser);
+// router.put("/:id", userController.updateUser);
 
 module.exports = router;

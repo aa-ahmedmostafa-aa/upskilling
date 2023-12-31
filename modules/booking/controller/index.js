@@ -4,27 +4,27 @@ const User = require("../../users/Model/user.model");
 const Room = require("../Model");
 const paginationService = require("../../../common/utils/paginationService");
 const logger = require("../../../common/config/logger");
-const Booking = require("../../booking/Model");
+const Booking = require("../Model");
 
-const findAll = async (req, res, next) => {
+const findAllMyBooking = async (req, res, next) => {
   try {
     const { page, size } = req.query;
     const { limit, skip } = paginationService(page, size);
-
-    const rooms = await Room.find({})
-      .populate("createdBy", "userName")
+    const { _id: userId } = req.user;
+    const myBooking = await Booking.find({ user: userId })
+      .populate("user", "room")
       .limit(limit)
       .skip(skip);
 
-    const totalCount = await Room.countDocuments();
+    const totalCount = await Booking.countDocuments();
 
     res.status(StatusCodes.OK).json({
       success: true,
       message: "success",
-      data: { rooms, totalCount },
+      data: { myBooking, totalCount },
     });
   } catch (error) {
-    logger.error("Error while fetching all rooms ", error);
+    logger.error("Error while fetching my booking ", error);
     next(
       new ErrorResponse(
         error,
@@ -34,42 +34,26 @@ const findAll = async (req, res, next) => {
   }
 };
 
-const findAllAvailableRooms = async (req, res, next) => {
+const findAll = async (req, res, next) => {
   try {
-    const { page, size, startDate, endDate } = req.query;
+    const { page, size } = req.query;
     const { limit, skip } = paginationService(page, size);
 
-    let query = {};
-    // Validate startDate and endDate
-    if (startDate && endDate) {
-      (query.startDate = { $lte: new Date(endDate) }),
-        (query.endDate = { $gte: new Date(startDate) });
-    }
-
-    // Find all bookings in the date range
-    const bookedRooms = await Booking.find(query).select("room");
-
-    const bookedRoomIds = bookedRooms.map((booking) => booking.room);
-
-    // Find all rooms that are not in the bookedRoomIds
-    const rooms = await Room.find({
-      _id: { $nin: bookedRoomIds },
-    })
-      .populate("createdBy", "userName")
+    const booking = await Booking.find({})
+      .populate("user", "userName")
+      .populate("room", "roomNumber")
       .limit(limit)
       .skip(skip);
 
-    const totalCount = await Room.countDocuments({
-      _id: { $nin: bookedRoomIds },
-    });
+    const totalCount = await Booking.countDocuments();
 
     res.status(StatusCodes.OK).json({
       success: true,
       message: "success",
-      data: { rooms, totalCount },
+      data: { booking, totalCount },
     });
   } catch (error) {
-    logger.error("Error while fetching all rooms ", error);
+    logger.error("Error while fetching all booking ", error);
     next(
       new ErrorResponse(
         error,
@@ -82,11 +66,13 @@ const findAllAvailableRooms = async (req, res, next) => {
 const findOne = async (req, res, next) => {
   try {
     const { _id } = req.params;
-    const found = await Room.findOne({ _id }).populate("createdBy", "userName");
+    const found = await Booking.findOne({ _id })
+      .populate("user", "userName")
+      .populate("room", "roomNumber");
     if (!found) {
       return next(
         new ErrorResponse(
-          `there is no room with #_id: ${_id}`,
+          `there is no booking with #_id: ${_id}`,
           StatusCodes.BAD_REQUEST
         )
       );
@@ -95,10 +81,10 @@ const findOne = async (req, res, next) => {
     res.status(StatusCodes.OK).json({
       success: true,
       message: "success",
-      data: { room: found },
+      data: { booking: found },
     });
   } catch (error) {
-    logger.error("Error while fetching room details ", error);
+    logger.error("Error while fetching booking details ", error);
     next(
       new ErrorResponse(
         error,
@@ -110,38 +96,45 @@ const findOne = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    const { createdBy, roomNumber } = req.body;
+    const { startDate, endDate, room: roomId, totalPrice } = req.body;
 
-    const found = await Room.findOne({ roomNumber });
-    if (found) {
+    const { _id: userId } = req.user;
+    const room = await Room.find({ _id: roomId });
+    if (!room) {
       return next(
         new ErrorResponse(
-          `room number already exists: ${roomNumber}`,
+          `there is no room with _id: ${roomId}`,
           StatusCodes.BAD_REQUEST
         )
       );
     }
 
-    const user = await User.find({ _id: createdBy });
+    const user = await User.find({ _id: userId });
     if (!user) {
       return next(
         new ErrorResponse(
-          `there is no user with #_id: ${createdBy}`,
+          `there is no user with #_id: ${userId}`,
           StatusCodes.BAD_REQUEST
         )
       );
     }
 
-    const images = req.files.map((img) => img.path);
-    const newRoom = new Room({ ...req.body, images });
-    const roomCreated = await newRoom.save();
+    const newBooking = new Booking({
+      startDate,
+      endDate,
+      room: roomId,
+      user: userId,
+      totalPrice,
+    });
+
+    const bookingCreated = await newBooking.save();
     res.status(StatusCodes.CREATED).json({
       success: true,
       message: "Room created successfully",
-      data: { room: roomCreated },
+      data: { booking: bookingCreated },
     });
   } catch (error) {
-    logger.error("Error while creating room ", error);
+    logger.error("Error while creating booking ", error);
     next(
       new ErrorResponse(
         error,
@@ -221,5 +214,5 @@ module.exports = {
   create,
   deleteOne,
   updateOne,
-  findAllAvailableRooms,
+  findAllMyBooking,
 };

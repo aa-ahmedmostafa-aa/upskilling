@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const objectIdSchema = Joi.string().pattern(/^[0-9a-fA-F]{24}$/, "hexadecimal");
 
 module.exports = {
   createRoomSchema: {
@@ -9,8 +10,7 @@ module.exports = {
         price: Joi.number().required(),
         capacity: Joi.number().required(),
         discount: Joi.number().required(),
-        facilities: Joi.array().items(Joi.string()).required(),
-        createdBy: Joi.string().required(),
+        facilities: Joi.array().items(objectIdSchema).required(),
       }),
   },
   updateRoomSchema: {
@@ -21,7 +21,7 @@ module.exports = {
         price: Joi.number().required(),
         capacity: Joi.number().required(),
         discount: Joi.number().required(),
-        facilities: Joi.array().items(Joi.string()).required(),
+        facilities: Joi.array().items(objectIdSchema).required(),
       }),
   },
 };

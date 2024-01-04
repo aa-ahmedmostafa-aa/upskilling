@@ -166,7 +166,7 @@ const login = async (req, res, next) => {
     const data = toAuthJSON(found);
     const user = await User.findOne({
       email,
-    }).select("-password"); // Exclude the password field
+    }).select("_id, userName , role"); // Exclude the password field
     return res.status(StatusCodes.OK).json({
       success: true,
       message: "User logged in successfully",

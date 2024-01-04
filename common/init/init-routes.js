@@ -9,6 +9,7 @@ const userPortalRoutes = require("../../modules/users/portal/routes");
 const roomRoutes = require("../../modules/rooms");
 const roomPortalRoutes = require("../../modules/rooms/portal/routes/index");
 const bookingRoutes = require("../../modules/booking");
+const roomFacilitiesRoutes = require("../../modules/room-facilities");
 const bookingPortalRoutes = require("../../modules/booking/portal/routes");
 
 /**
@@ -23,6 +24,7 @@ module.exports = (app) => {
   app.use(`${config.baseUrl_V0}/${config.authType.admin}/users`, userRoutes);
   app.use(`${config.baseUrl_V0}/${config.authType.admin}/rooms`, roomRoutes);
   app.use(`${config.baseUrl_V0}/${config.authType.admin}/booking`, bookingRoutes);
+  app.use(`${config.baseUrl_V0}/${config.authType.admin}/room-facilities`, roomFacilitiesRoutes);
 
   // portal routes
   app.use(

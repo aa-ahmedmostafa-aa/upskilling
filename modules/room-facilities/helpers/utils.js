@@ -34,7 +34,6 @@ class Utils {
 
     const rooms = await Room.find(roomQuery)
       .populate("createdBy", "userName")
-      .populate("facilities", "name")
       .limit(limit)
       .skip(skip);
 
@@ -45,10 +44,7 @@ class Utils {
   static findAllRoomsWithReservedFlag = async (page, size) => {
     const { limit, skip } = paginationService(page, size);
     // Fetch all rooms
-    const rooms = await Room.find()
-      .populate("facilities", "name")
-      .limit(limit)
-      .skip(skip);
+    const rooms = await Room.find().limit(limit).skip(skip);
 
     // Find bookings in the date range
     const bookings = await Booking.find({});

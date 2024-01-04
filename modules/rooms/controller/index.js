@@ -1,10 +1,13 @@
 const { StatusCodes } = require("http-status-codes");
 const ErrorResponse = require("../../../common/utils/errorResponse");
-const User = require("../../users/Model/user.model");
 const Room = require("../Model");
 const paginationService = require("../../../common/utils/paginationService");
 const logger = require("../../../common/config/logger");
-const Booking = require("../../booking/Model");
+const {
+  findAvailableRooms,
+  findAllRoomsWithReservedFlag,
+} = require("../helpers/utils");
+const RoomFacilities = require("../../room-facilities/Model");
 
 const findAll = async (req, res, next) => {
   try {
@@ -13,6 +16,7 @@ const findAll = async (req, res, next) => {
 
     const rooms = await Room.find({})
       .populate("createdBy", "userName")
+      .populate("facilities", "name")
       .limit(limit)
       .skip(skip);
 
@@ -36,32 +40,26 @@ const findAll = async (req, res, next) => {
 
 const findAllAvailableRooms = async (req, res, next) => {
   try {
-    const { page, size, startDate, endDate } = req.query;
-    const { limit, skip } = paginationService(page, size);
+    const { page, size, startDate, endDate, capacity } = req.query;
+    let rooms, totalCount;
 
-    let query = {};
-    // Validate startDate and endDate
     if (startDate && endDate) {
-      (query.startDate = { $lte: new Date(endDate) }),
-        (query.endDate = { $gte: new Date(startDate) });
+      // If startDate and endDate are provided, find available rooms
+      const data = await findAvailableRooms(
+        page,
+        size,
+        startDate,
+        endDate,
+        capacity
+      );
+      rooms = data.rooms;
+      totalCount = data.totalCount;
+    } else {
+      // If no specific date range is provided, get all rooms and flag as reserved if booked
+      const data = await findAllRoomsWithReservedFlag(page, size);
+      rooms = data.roomsWithBookingFlag;
+      totalCount = data.totalCount;
     }
-
-    // Find all bookings in the date range
-    const bookedRooms = await Booking.find(query).select("room");
-
-    const bookedRoomIds = bookedRooms.map((booking) => booking.room);
-
-    // Find all rooms that are not in the bookedRoomIds
-    const rooms = await Room.find({
-      _id: { $nin: bookedRoomIds },
-    })
-      .populate("createdBy", "userName")
-      .limit(limit)
-      .skip(skip);
-
-    const totalCount = await Room.countDocuments({
-      _id: { $nin: bookedRoomIds },
-    });
 
     res.status(StatusCodes.OK).json({
       success: true,
@@ -82,7 +80,9 @@ const findAllAvailableRooms = async (req, res, next) => {
 const findOne = async (req, res, next) => {
   try {
     const { _id } = req.params;
-    const found = await Room.findOne({ _id }).populate("createdBy", "userName");
+    const found = await Room.findOne({ _id })
+      .populate("facilities", "name")
+      .populate("createdBy", "userName");
     if (!found) {
       return next(
         new ErrorResponse(
@@ -110,7 +110,8 @@ const findOne = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    const { createdBy, roomNumber } = req.body;
+    const { roomNumber, facilities } = req.body;
+    const { _id: createdBy } = req.user;
 
     const found = await Room.findOne({ roomNumber });
     if (found) {
@@ -122,18 +123,23 @@ const create = async (req, res, next) => {
       );
     }
 
-    const user = await User.find({ _id: createdBy });
-    if (!user) {
+    // Count how many of these IDs exist in the collection
+    const count = await RoomFacilities.countDocuments({
+      _id: { $in: facilities },
+    });
+
+    // Check if the count matches the number of IDs
+    if (count != facilities.length) {
       return next(
         new ErrorResponse(
-          `there is no user with #_id: ${createdBy}`,
+          `facility rooms ids not found: ${facilities}`,
           StatusCodes.BAD_REQUEST
         )
       );
     }
 
     const images = req.files.map((img) => img.path);
-    const newRoom = new Room({ ...req.body, images });
+    const newRoom = new Room({ ...req.body, createdBy, images });
     const roomCreated = await newRoom.save();
     res.status(StatusCodes.CREATED).json({
       success: true,

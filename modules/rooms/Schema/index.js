@@ -6,7 +6,9 @@ const roomSchema = new mongoose.Schema(
     price: { type: Number },
     capacity: { type: Number },
     discount: { type: Number },
-    facilities: [{ type: String }],
+    facilities: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "roomFacilities" },
+    ],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
     images: [{ type: String }],
   },

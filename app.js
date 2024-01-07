@@ -27,12 +27,7 @@ const limiter = rateLimit({
 app.use(express.json());
 
 // Used to enable CORS
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
-  })
-);
+app.use(cors());
 // Protect against HTTP Parameter Pollution attacks
 app.use(hpp());
 // Sanitize data

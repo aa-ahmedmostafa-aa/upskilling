@@ -10,6 +10,10 @@ const {
   endpoints: RoomsEndPoints,
 } = require("../../../modules/rooms/helpers/constants");
 
+const {
+  endpoints: AdsEndPoints,
+} = require("../../../modules/ads/helpers/constants");
+
 module.exports = [
   UserEndPoints.USER_CHANGE_PASSWORD,
   UserEndPoints.USER_GET_USER,
@@ -17,4 +21,6 @@ module.exports = [
   BookingEndPoints.BOOKING_DELETE_BOOKING,
   BookingEndPoints.BOOKING_CREATE_BOOKING,
   RoomsEndPoints.ROOM_GET_ALL_AVAILABLE_ROOMS,
+  AdsEndPoints.ADS_GET_ALL,
+  AdsEndPoints.ADS_GET_details,
 ];

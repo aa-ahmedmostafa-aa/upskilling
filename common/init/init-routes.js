@@ -10,7 +10,9 @@ const roomRoutes = require("../../modules/rooms");
 const roomPortalRoutes = require("../../modules/rooms/portal/routes/index");
 const bookingRoutes = require("../../modules/booking");
 const roomFacilitiesRoutes = require("../../modules/room-facilities");
+const adsRoutes = require("../../modules/ads");
 const bookingPortalRoutes = require("../../modules/booking/portal/routes");
+const adsPortalRoutes = require("../../modules/ads/portal/routes");
 
 /**
  * @function
@@ -23,8 +25,15 @@ module.exports = (app) => {
   // app.use(`${config.baseUrl_V0}/${config.authType.admin}`, commonAdminRoutes);
   app.use(`${config.baseUrl_V0}/${config.authType.admin}/users`, userRoutes);
   app.use(`${config.baseUrl_V0}/${config.authType.admin}/rooms`, roomRoutes);
-  app.use(`${config.baseUrl_V0}/${config.authType.admin}/booking`, bookingRoutes);
-  app.use(`${config.baseUrl_V0}/${config.authType.admin}/room-facilities`, roomFacilitiesRoutes);
+  app.use(
+    `${config.baseUrl_V0}/${config.authType.admin}/booking`,
+    bookingRoutes
+  );
+  app.use(
+    `${config.baseUrl_V0}/${config.authType.admin}/room-facilities`,
+    roomFacilitiesRoutes
+  );
+  app.use(`${config.baseUrl_V0}/${config.authType.admin}/ads`, adsRoutes);
 
   // portal routes
   app.use(
@@ -38,6 +47,11 @@ module.exports = (app) => {
   app.use(
     `${config.baseUrl_V0}/${config.authType.portal}/rooms`,
     roomPortalRoutes
+  );
+
+  app.use(
+    `${config.baseUrl_V0}/${config.authType.portal}/ads`,
+    adsPortalRoutes
   );
 
   // Central error handler

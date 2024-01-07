@@ -68,7 +68,7 @@ const findOne = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    const { room: roomId, discount } = req.body;
+    const { room: roomId, discount, isActive } = req.body;
     const { _id: createdBy } = req.user;
     const room = await Room.findOne({ _id: roomId });
     if (!room) {
@@ -98,12 +98,9 @@ const create = async (req, res, next) => {
         )
       );
     }
-    await Room.updateOne(
-      { _id: roomId },
-      { discount, price: price - discount }
-    );
+    await Room.updateOne({ _id: roomId }, { discount });
 
-    const newAds = new Ads({ createdBy, room: roomId });
+    const newAds = new Ads({ createdBy, room: roomId, isActive });
     const adsCreated = await newAds.save();
     res.status(StatusCodes.CREATED).json({
       success: true,
@@ -124,6 +121,7 @@ const create = async (req, res, next) => {
 const updateOne = async (req, res, next) => {
   try {
     const { _id } = req.params;
+    const { discount, isActive } = req.body;
     const found = await Ads.findOne({ _id });
 
     if (!found) {
@@ -135,7 +133,9 @@ const updateOne = async (req, res, next) => {
       );
     }
 
-    await Ads.updateOne({ _id }, { ...req.body });
+    await Room.updateOne({ _id: found.room }, { discount });
+
+    await Ads.updateOne({ _id }, { isActive });
     const updatedAds = await Ads.findOne({ _id });
     res.status(StatusCodes.OK).json({
       success: true,

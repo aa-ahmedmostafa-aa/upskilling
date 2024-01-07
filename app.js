@@ -64,7 +64,11 @@ app.use(helmet());
 
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/uploads", cors(), express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", cors(), express.static(path.join(__dirname, "uploads")), {
+  setHeaders: (res) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  },
+});
 
 // jobs()
 

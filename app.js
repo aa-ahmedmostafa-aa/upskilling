@@ -29,7 +29,16 @@ app.use(express.json());
 // Used to enable CORS
 app.use(cors());
 // Protect against HTTP Parameter Pollution attacks
-app.use(hpp());
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Replace with your site's origin
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
+
+// app.use(hpp());
 // Sanitize data
 app.use(mongoSanitize());
 // Prevent XSS attack
@@ -59,7 +68,7 @@ app.use(helmet());
 
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // jobs()
 

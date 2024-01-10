@@ -130,7 +130,7 @@ const create = async (req, res, next) => {
     const bookingCreated = await newBooking.save();
     res.status(StatusCodes.CREATED).json({
       success: true,
-      message: "Room created successfully",
+      message: "booking created successfully",
       data: { booking: bookingCreated },
     });
   } catch (error) {

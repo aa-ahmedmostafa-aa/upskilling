@@ -39,6 +39,9 @@ const config = {
   SMTP_PASSWORD: process.env.SMTP_PASSWORD,
   SMTP_SENDER: process.env.SMTP_SENDER,
   SMTP_RECEIVER: process.env.SMTP_RECEIVER,
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 };
 
 module.exports = config;

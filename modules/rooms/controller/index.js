@@ -8,6 +8,7 @@ const {
   findAllRoomsWithReservedFlag,
 } = require("../helpers/utils");
 const RoomFacilities = require("../../room-facilities/Model");
+const { cloudinary } = require("../../../common/utils/cloudinary");
 
 const findAll = async (req, res, next) => {
   try {
@@ -138,7 +139,15 @@ const create = async (req, res, next) => {
       );
     }
 
-    const images = req.files.map((img) => img.path);
+    const files = req.files;
+    const uploadPromises = files.map((file) => {
+      return cloudinary.uploader.upload(file.path, {
+        folder: "rooms", // Optional: specify a folder in Cloudinary
+      });
+    });
+
+    const result = await Promise.all(uploadPromises);
+    const images = result.map((img) => img.url);
     const newRoom = new Room({ ...req.body, createdBy, images });
     const roomCreated = await newRoom.save();
     res.status(StatusCodes.CREATED).json({
@@ -158,32 +167,44 @@ const create = async (req, res, next) => {
 };
 
 const updateOne = async (req, res, next) => {
+  const { _id } = req.params;
+
   try {
-    const { _id } = req.params;
-    const found = await Room.findOne({ _id });
-    if (!found) {
+    // Use findById instead of findOne for better performance when searching by ID
+    const room = await Room.findById(_id);
+
+    if (!room) {
       return next(
         new ErrorResponse(
-          `there is no room with #_id: ${_id}`,
-          StatusCodes.BAD_REQUEST
+          `Room not found with id: ${_id}`,
+          StatusCodes.NOT_FOUND
         )
       );
     }
 
-    const images = req.files.map((img) => img.path);
+    const files = req.files;
+    const uploadPromises = files.map((file) => {
+      return cloudinary.uploader.upload(file.path, {
+        folder: "rooms", // Optional: specify a folder in Cloudinary
+      });
+    });
 
-    await Room.updateOne({ _id }, { ...req.body, images });
-    const updatedRoom = await Room.findOne({ _id });
+    const result = await Promise.all(uploadPromises);
+    const images = result.map((img) => img.url);
+
+    // Use findByIdAndUpdate for atomic operations and better performance
+    const updatedRoom = await Room.findByIdAndUpdate(_id, { ...req.body, images }, { new: true });
+
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Room updated successfully",
       data: { room: updatedRoom },
     });
   } catch (error) {
-    logger.error("Error while updating room ", error);
+    logger.error("Error while updating room", error);
     next(
       new ErrorResponse(
-        error,
+        error.message,
         error.status || StatusCodes.INTERNAL_SERVER_ERROR
       )
     );

@@ -18,6 +18,14 @@ const {
   endpoints: FavoriteRoomsEndPoints,
 } = require("../../../modules/favorite-rooms/helpers/constants");
 
+const {
+  endpoints: RoomCommentsEndPoints,
+} = require("../../../modules/room-comments/helpers/constants");
+
+const {
+  endpoints: RoomReviewEndPoints,
+} = require("../../../modules/room-reviews/helpers/constants");
+
 module.exports = [
   UserEndPoints.USER_CHANGE_PASSWORD,
   UserEndPoints.USER_GET_USER,
@@ -30,4 +38,10 @@ module.exports = [
   FavoriteRoomsEndPoints.FAVORITE_ROOMS_CREATE,
   FavoriteRoomsEndPoints.FAVORITE_ROOMS_GET_ALL,
   FavoriteRoomsEndPoints.FAVORITE_ROOMS_UPDATE,
+  RoomCommentsEndPoints.ROOM_COMMENT_CREATE,
+  RoomCommentsEndPoints.ROOM_COMMENT_DELETE,
+  RoomCommentsEndPoints.ROOM_COMMENT_GET_ALL,
+  RoomCommentsEndPoints.ROOM_COMMENT_UPDATE,
+  RoomReviewEndPoints.ROOM_REVIEW_CREATE,
+  RoomReviewEndPoints.ROOM_REVIEW_GET_ALL,
 ];

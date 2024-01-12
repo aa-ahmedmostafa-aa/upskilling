@@ -14,6 +14,8 @@ const adsRoutes = require("../../modules/ads");
 const bookingPortalRoutes = require("../../modules/booking/portal/routes");
 const adsPortalRoutes = require("../../modules/ads/portal/routes");
 const favoriteRoomsPortalRoutes = require("../../modules/favorite-rooms/portal/routes");
+const roomCommentsPortalRoutes = require("../../modules/room-comments/portal/routes");
+const roomReviewsPortalRoutes = require("../../modules/room-reviews/portal/routes");
 
 /**
  * @function
@@ -58,6 +60,16 @@ module.exports = (app) => {
   app.use(
     `${config.baseUrl_V0}/${config.authType.portal}/favorite-rooms`,
     favoriteRoomsPortalRoutes
+  );
+
+  app.use(
+    `${config.baseUrl_V0}/${config.authType.portal}/room-comments`,
+    roomCommentsPortalRoutes
+  );
+
+  app.use(
+    `${config.baseUrl_V0}/${config.authType.portal}/room-reviews`,
+    roomReviewsPortalRoutes
   );
 
   // Central error handler

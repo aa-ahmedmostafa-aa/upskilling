@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const objectIdSchema = Joi.string().pattern(/^[0-9a-fA-F]{24}$/, "hexadecimal");
 
 module.exports = {
   getAllAvailableRoomsSchema: {
@@ -11,6 +12,11 @@ module.exports = {
         .when("endDate", { is: Joi.exist(), then: Joi.required() }),
 
       endDate: Joi.date(), // Ensure endDate is after startDate
+    }),
+  },
+  getRoomDetailsSchema: {
+    params: Joi.object({
+      _id: objectIdSchema.required(),
     }),
   },
 };

@@ -15,6 +15,7 @@ router.get(
 router.get(
   "/:_id",
   // isAuthorized(roomEndPoints.ROOM_GET_ROOM_details),
+  validateRequest(roomValidation.getRoomDetailsSchema),
   roomController.findOne
 );
 

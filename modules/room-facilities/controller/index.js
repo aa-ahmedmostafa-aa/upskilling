@@ -10,6 +10,7 @@ const findAll = async (req, res, next) => {
     const { limit, skip } = paginationService(page, size);
 
     const facilities = await RoomFacilities.find({})
+      .sort({ createdAt: -1 })
       .populate("createdBy", "userName")
       .limit(limit)
       .skip(skip);

@@ -28,6 +28,12 @@ const userSchema = new mongoose.Schema(
     resetPasswordExpiration: {
       type: Date,
     },
+    googleId: {
+      type: String,
+    },
+    facebookId: {
+      type: String,
+    },
   },
   {
     collection: "users",

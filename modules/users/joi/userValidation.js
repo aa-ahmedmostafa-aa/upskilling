@@ -76,4 +76,9 @@ module.exports = {
       name: Joi.string().required(),
     }),
   },
+  socialLoginSchema: {
+    body: Joi.object().required().keys({
+      accessToken: Joi.string().required(),
+    }),
+  },
 };

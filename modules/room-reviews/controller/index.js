@@ -23,6 +23,7 @@ const findAll = async (req, res, next) => {
     }
 
     const roomReviews = await RoomReview.find({ room: roomId })
+      .sort({ createdAt: -1 })
       .populate("user", "userName , profileImage")
       .populate("room", "roomNumber")
       .limit(limit)
@@ -62,17 +63,20 @@ const createReview = async (req, res, next) => {
       );
     }
 
-     // Check if the user has already added a review for the same room
-     const existingReview = await RoomReview.findOne({ room: roomId, user: userId });
+    // Check if the user has already added a review for the same room
+    const existingReview = await RoomReview.findOne({
+      room: roomId,
+      user: userId,
+    });
 
-     if (existingReview) {
-       return next(
-         new ErrorResponse(
-           `User has already added a review for this room`,
-           StatusCodes.BAD_REQUEST
-         )
-       );
-     }
+    if (existingReview) {
+      return next(
+        new ErrorResponse(
+          `User has already added a review for this room`,
+          StatusCodes.BAD_REQUEST
+        )
+      );
+    }
 
     const roomReview = await RoomReview.create({
       room: roomId,

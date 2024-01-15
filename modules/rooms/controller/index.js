@@ -16,6 +16,7 @@ const findAll = async (req, res, next) => {
     const { limit, skip } = paginationService(page, size);
 
     const rooms = await Room.find({})
+      .sort({ createdAt: -1 })
       .populate("createdBy", "userName")
       .populate("facilities", "name")
       .limit(limit)
@@ -193,7 +194,11 @@ const updateOne = async (req, res, next) => {
     const images = result.map((img) => img.url);
 
     // Use findByIdAndUpdate for atomic operations and better performance
-    const updatedRoom = await Room.findByIdAndUpdate(_id, { ...req.body, images }, { new: true });
+    const updatedRoom = await Room.findByIdAndUpdate(
+      _id,
+      { ...req.body, images },
+      { new: true }
+    );
 
     res.status(StatusCodes.OK).json({
       success: true,

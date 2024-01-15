@@ -12,6 +12,7 @@ const findAll = async (req, res, next) => {
     const { _id: userId } = req.user;
 
     const favoriteRooms = await FavoriteRooms.find({ user: userId })
+      .sort({ createdAt: -1 })
       .populate("user", "userName")
       .populate("rooms")
       .limit(limit)

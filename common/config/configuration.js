@@ -3,8 +3,7 @@ const mongoURI =
   process.env.NODE_ENV === "dev"
     ? process.env.MONGO_URI_DEV ||
       "mongodb+srv://upskilling:1234@cluster0.q6drz.mongodb.net/booking?retryWrites=true&w=majority"
-    : process.env.MONGO_URI_LOCAL ||
-      "mongodb://localhost:27017/booking";
+    : process.env.MONGO_URI_LOCAL || "mongodb://localhost:27017/booking";
 
 const config = {
   port: parseInt(process.env.PORT, 0) || 3000,
@@ -42,6 +41,10 @@ const config = {
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID,
+  FACEBOOK_APP_SECRET: process.env.FACEBOOK_APP_SECRET,
 };
 
 module.exports = config;

@@ -19,6 +19,7 @@ const findAll = async (req, res, next) => {
     const { limit, skip } = paginationService(page, size);
 
     const users = await User.find({})
+      .sort({ createdAt: -1 })
       .select("-password")
       .limit(limit)
       .skip(skip);

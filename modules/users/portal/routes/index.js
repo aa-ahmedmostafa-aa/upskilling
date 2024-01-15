@@ -5,7 +5,7 @@ const userValidation = require("../../joi/userValidation");
 const userEndPoints = require("../../helpers/constants");
 const router = require("express").Router();
 const { upload } = require("../../../../common/middelware/uploadFile");
-
+const passport = require("passport");
 
 router.get(
   "/:_id",
@@ -41,6 +41,40 @@ router.post(
   "/reset-password",
   validateRequest(userValidation.userPasswordResetSchema),
   userController.resetPassword
+);
+
+router.post(
+  "/auth/google",
+  validateRequest(userValidation.socialLoginSchema),
+  (req, res, next) => {
+    passport.authenticate("google", { session: false })(req, res, next);
+  }
+);
+
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { session: false }),
+  (req, res) => {
+    // Send JWT to the client
+    res.json({ token: req.user });
+  }
+);
+
+router.post(
+  "/auth/facebook",
+  validateRequest(userValidation.socialLoginSchema),
+  (req, res, next) => {
+    passport.authenticate("facebook", { session: false })(req, res, next);
+  }
+);
+
+router.get(
+  "/auth/facebook/callback",
+  passport.authenticate("facebook", { session: false }),
+  (req, res) => {
+    // Send JWT to the client
+    res.json({ token: req.user });
+  }
 );
 
 // router.get("/verify/:token", userController.verifyEmail);

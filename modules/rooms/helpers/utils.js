@@ -46,6 +46,7 @@ class Utils {
     const { limit, skip } = paginationService(page, size);
     // Fetch all rooms
     const rooms = await Room.find()
+      .sort({ createdAt: -1 })
       .populate("facilities", "name")
       .limit(limit)
       .skip(skip);

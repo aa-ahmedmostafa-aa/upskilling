@@ -11,6 +11,7 @@ const findAll = async (req, res, next) => {
     const { limit, skip } = paginationService(page, size);
 
     const ads = await Ads.find({})
+      .sort({ createdAt: -1 })
       .populate("createdBy", "userName")
       .populate("room")
       .limit(limit)
@@ -117,8 +118,6 @@ const create = async (req, res, next) => {
     );
   }
 };
-
-
 
 const updateOne = async (req, res, next) => {
   try {

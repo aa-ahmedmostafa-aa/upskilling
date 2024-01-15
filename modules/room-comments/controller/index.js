@@ -23,8 +23,9 @@ const findAll = async (req, res, next) => {
     }
 
     const roomComments = await RoomComment.find({ room: roomId })
+      .sort({ createdAt: -1 })
       .populate("user", "userName , profileImage")
-      .populate("room","roomNumber")
+      .populate("room", "roomNumber")
       .limit(limit)
       .skip(skip);
 

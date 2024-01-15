@@ -12,6 +12,7 @@ const findAllMyBooking = async (req, res, next) => {
     const { limit, skip } = paginationService(page, size);
     const { _id: userId } = req.user;
     const myBooking = await Booking.find({ user: userId })
+      .sort({ createdAt: -1 })
       .populate("user", "room")
       .limit(limit)
       .skip(skip);
@@ -40,6 +41,7 @@ const findAll = async (req, res, next) => {
     const { limit, skip } = paginationService(page, size);
 
     const booking = await Booking.find({})
+      .sort({ createdAt: -1 })
       .populate("user", "userName")
       .populate("room", "roomNumber")
       .limit(limit)

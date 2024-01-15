@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+// const Booking = require("../../booking/Model");
+// const Ads = require("../../ads/Model");
 
 const roomSchema = new mongoose.Schema(
   {
@@ -18,5 +20,13 @@ const roomSchema = new mongoose.Schema(
     versionKey: false,
   }
 );
+
+// roomSchema.pre("remove", async function (next) {
+//   // 'this' is the room that's about to be removed
+//   // Remove all ads and bookings that reference this room
+//   await Ads.deleteMany({ roomId: this._id });
+//   await Booking.deleteMany({ roomId: this._id });
+//   next();
+// });
 
 module.exports = roomSchema;

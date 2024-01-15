@@ -12,6 +12,7 @@ const paginationService = require("../../../common/utils/paginationService");
 const config = require("../../../common/config/configuration");
 const { randomBytes } = require("crypto");
 const ResetRequest = require("../Model/resetRequest.model");
+const { cloudinary } = require("../../../common/utils/cloudinary");
 
 const findAll = async (req, res, next) => {
   try {
@@ -63,7 +64,10 @@ const signUp = async (req, res, next) => {
     } else {
       let profileImage;
       if (file && file.path) {
-        profileImage = file.path;
+        const imgUploadedData = await cloudinary.uploader.upload(file.path, {
+          folder: "users", // Optional: specify a folder in Cloudinary
+        });
+        profileImage = imgUploadedData.url;
       } else {
         return next(
           new ErrorResponse(

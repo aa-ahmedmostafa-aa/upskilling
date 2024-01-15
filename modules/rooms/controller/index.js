@@ -9,6 +9,8 @@ const {
 } = require("../helpers/utils");
 const RoomFacilities = require("../../room-facilities/Model");
 const { cloudinary } = require("../../../common/utils/cloudinary");
+const Ads = require("../../ads/Model");
+const Booking = require("../../booking/Model");
 
 const findAll = async (req, res, next) => {
   try {
@@ -229,12 +231,16 @@ const deleteOne = async (req, res, next) => {
       );
     }
 
-    const room = await Room.deleteOne({ _id });
+    const result = await Promise.all([
+      Room.deleteOne({ _id }),
+      Ads.deleteMany({ room: _id }),
+      Booking.deleteMany({ room: _id }),
+    ]);
 
     res.status(StatusCodes.OK).json({
       success: true,
       message: "success",
-      data: { room },
+      data: { room: result[0] },
     });
   } catch (error) {
     logger.error("Error while deleting room ", error);

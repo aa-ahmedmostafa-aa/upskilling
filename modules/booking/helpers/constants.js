@@ -5,6 +5,7 @@ const endpoints = Object.freeze({
   BOOKING_UPDATE_BOOKING: "booking:updateBooking",
   BOOKING_DELETE_BOOKING: "booking:deleteBooking",
   BOOKING_CREATE_BOOKING: "booking:createBooking",
+  BOOKING_PAY: "booking:payBooking",
 });
 
 const Booking_type = Object.freeze({

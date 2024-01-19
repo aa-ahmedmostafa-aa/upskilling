@@ -14,6 +14,11 @@ const { randomBytes } = require("crypto");
 const ResetRequest = require("../Model/resetRequest.model");
 const { cloudinary } = require("../../../common/utils/cloudinary");
 
+const { OAuth2Client } = require("google-auth-library");
+const FB = require("fb");
+
+const clientGoogle = new OAuth2Client(config.GOOGLE_CLIENT_ID);
+
 const findAll = async (req, res, next) => {
   try {
     const { page, size } = req.query;
@@ -391,6 +396,89 @@ const updateUser = async (req, res) => {
   }
 };
 
+const googleLoginHandler = async (req, res, next) => {
+  const { accessToken } = req.body;
+  try {
+    const { payload } = await clientGoogle.verifyIdToken({
+      idToken: accessToken,
+      audience: `${config.GOOGLE_CLIENT_ID}`,
+    });
+
+    const { given_name, family_name, picture, email } = payload;
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        userName: `${given_name} ${family_name}`,
+        profileImage: picture,
+        role: userTypes.USER,
+        email,
+      });
+    }
+
+    const dataToken = toAuthJSON(user);
+    const userData = await User.findOne({
+      email,
+    }).select("_id, userName , role");
+    const data = { user: userData, token: dataToken.token };
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "User logged in successfully",
+      data,
+    });
+  } catch (error) {
+    logger.error("Error while google auth login ", error);
+    next(
+      new ErrorResponse(
+        error,
+        error.status || StatusCodes.INTERNAL_SERVER_ERROR
+      )
+    );
+  }
+};
+
+const facebookLoginHandler = async (req, res, next) => {
+  const { accessToken, userID } = req.body;
+  FB.setAccessToken(accessToken);
+
+  try {
+    const userFacebook = await FB.api(userID, {
+      fields: ["id", "name", "email", "picture"],
+    });
+    const { name, picture, email } = userFacebook;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        userName: name,
+        profileImage: picture,
+        role: userTypes.USER,
+        email,
+      });
+    }
+
+    const dataToken = toAuthJSON(user);
+    const userData = await User.findOne({
+      email,
+    }).select("_id, userName , role");
+    const data = { user: userData, token: dataToken.token };
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "User logged in successfully",
+      data,
+    });
+  } catch (error) {
+    logger.error("Error while facebook auth login ", error);
+    next(
+      new ErrorResponse(
+        error,
+        error.status || StatusCodes.INTERNAL_SERVER_ERROR
+      )
+    );
+  }
+};
+
 module.exports = {
   findAll,
   signUp,
@@ -402,4 +490,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   changePassword,
+  googleLoginHandler,
+  facebookLoginHandler,
 };

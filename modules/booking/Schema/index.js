@@ -13,6 +13,7 @@ const bookingSchema = new mongoose.Schema(
       enum: [...Object.values(Booking_type)], // Define your enum values here
       default: Booking_type.PENDING, // Optional: Set a default status
     },
+    stripeChargeId: String,
   },
   {
     collection: "booking",

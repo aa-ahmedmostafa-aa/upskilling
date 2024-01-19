@@ -44,4 +44,5 @@ module.exports = [
   RoomCommentsEndPoints.ROOM_COMMENT_UPDATE,
   RoomReviewEndPoints.ROOM_REVIEW_CREATE,
   RoomReviewEndPoints.ROOM_REVIEW_GET_ALL,
+  BookingEndPoints.BOOKING_PAY,
 ];

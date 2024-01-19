@@ -20,4 +20,10 @@ module.exports = {
         facilities: Joi.array().items(Joi.string()).required(),
       }),
   },
+
+  payBookingSchema: {
+    body: Joi.object().required().keys({
+      token: Joi.string().required(),
+    }),
+  },
 };

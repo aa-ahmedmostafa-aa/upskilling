@@ -32,5 +32,12 @@ router.post(
   bookingController.create
 );
 
+router.post(
+  "/:_id/pay",
+  isAuthorized(bookingEndPoints.BOOKING_PAY),
+  validateRequest(bookingValidation.payBookingSchema),
+  bookingController.pay
+);
+
 
 module.exports = router;

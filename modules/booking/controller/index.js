@@ -5,6 +5,9 @@ const Room = require("../Model");
 const paginationService = require("../../../common/utils/paginationService");
 const logger = require("../../../common/config/logger");
 const Booking = require("../Model");
+const { Booking_type } = require("../helpers/constants");
+const config = require("../../../common/config/configuration");
+const stripe = require("stripe")(config.STRIPE_SECRET_KEY);
 
 const findAllMyBooking = async (req, res, next) => {
   try {
@@ -210,6 +213,83 @@ const deleteOne = async (req, res, next) => {
   }
 };
 
+const pay = async (req, res, next) => {
+  const { _id: bookingId } = req.params;
+  const { _id: userId } = req.user;
+
+  try {
+    const { token: stripeToken } = req.body;
+
+    // Check if valid bookingId
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return next(
+        new ErrorResponse(
+          `Invalid booking ID #_id: ${bookingId}`,
+          StatusCodes.BAD_REQUEST
+        )
+      );
+    }
+
+    // Check if the userId from req.user is the same as the userId on the booking
+    if (booking.user.toString() !== userId.toString()) {
+      return next(
+        new ErrorResponse(
+          `Unauthorized to access this booking`,
+          StatusCodes.UNAUTHORIZED
+        )
+      );
+    }
+
+    // Check if the booking is already paid
+    if (booking.status === Booking_type.COMPLETED) {
+      return next(
+        new ErrorResponse(
+          `This booking has already been paid`,
+          StatusCodes.BAD_REQUEST
+        )
+      );
+    }
+
+    // Get totalPrice from booking
+    const { totalPrice } = booking;
+
+    // Pay using Stripe
+    const charge = await stripe.charges.create({
+      amount: totalPrice * 100, // Stripe requires the amount to be in cents
+      currency: "usd", // replace with your currency
+      source: stripeToken, // obtained from the client-side Stripe.js
+      description: `Charge for booking ID: ${bookingId}`,
+    });
+
+    // Check if payment success, update status of booking to be completed
+    if (charge.status === "succeeded") {
+      booking.status = Booking_type.COMPLETED;
+      booking.stripeChargeId = charge.id;
+      await booking.save();
+
+      res.status(StatusCodes.CREATED).json({
+        success: true,
+        message: "booking payed successfully",
+        data: { booking },
+      });
+    } else {
+      logger.error("payment failed ");
+      next(
+        new ErrorResponse(`payment failed`, StatusCodes.INTERNAL_SERVER_ERROR)
+      );
+    }
+  } catch (error) {
+    logger.error("Error while creating booking ", error);
+    next(
+      new ErrorResponse(
+        error,
+        error.status || StatusCodes.INTERNAL_SERVER_ERROR
+      )
+    );
+  }
+};
+
 module.exports = {
   findAll,
   findOne,
@@ -217,4 +297,5 @@ module.exports = {
   deleteOne,
   updateOne,
   findAllMyBooking,
+  pay,
 };

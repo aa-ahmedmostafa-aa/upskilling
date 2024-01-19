@@ -17,8 +17,10 @@ module.exports = {
           .messages({
             "any.only": "Confirm password does not match password",
           }),
-          phoneNumber: Joi.string().pattern(/^01[0-9]{9}$/).message('Phone number must start with 01 and be 11 digits in total'),
-          role: Joi.string().valid(userTypes.ADMIN, userTypes.USER).required(),
+        phoneNumber: Joi.string()
+          .pattern(/^01[0-9]{9}$/)
+          .message("Phone number must start with 01 and be 11 digits in total"),
+        role: Joi.string().valid(userTypes.ADMIN, userTypes.USER).required(),
       }),
   },
 
@@ -76,9 +78,15 @@ module.exports = {
       name: Joi.string().required(),
     }),
   },
-  socialLoginSchema: {
+  socialGoogleLoginSchema: {
     body: Joi.object().required().keys({
       accessToken: Joi.string().required(),
+    }),
+  },
+  socialFacebookLoginSchema: {
+    body: Joi.object().required().keys({
+      accessToken: Joi.string().required(),
+      userID: Joi.string().required(),
     }),
   },
 };

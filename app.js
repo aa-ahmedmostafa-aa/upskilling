@@ -6,7 +6,7 @@ const morgan = require("morgan");
 const hpp = require("hpp");
 const xss = require("xss-clean");
 const helmet = require("helmet");
-const passport = require('passport');
+// const passport = require('passport');
 
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
@@ -69,8 +69,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // jobs()
 
-require('./common/utils/passport-setup'); // replace with your passport-setup path
-app.use(passport.initialize());
+// require('./common/utils/passport-setup'); // replace with your passport-setup path
+// app.use(passport.initialize());
 
 // Initialize app
 initApp(app);

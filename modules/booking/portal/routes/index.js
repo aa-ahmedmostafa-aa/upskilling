@@ -13,15 +13,15 @@ router.get(
   bookingController.findAllMyBooking
 );
 
-router.get(
-  "/my",
-  isAuthorized(bookingEndPoints.BOOKING_MY_BOOKING),
-  bookingController.findAllMyBooking
-);
+// router.get(
+//   "/my",
+//   isAuthorized(bookingEndPoints.BOOKING_MY_BOOKING),
+//   bookingController.findAllMyBooking
+// );
 
 router.get(
   "/:_id",
-  isAuthorized(bookingEndPoints.ROOM_GET_ROOM_details),
+  isAuthorized(bookingEndPoints.BOOKING_GET_BOOKING_details),
   bookingController.findOne
 );
 

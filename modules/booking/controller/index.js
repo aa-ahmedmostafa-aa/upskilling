@@ -20,7 +20,7 @@ const findAllMyBooking = async (req, res, next) => {
       .limit(limit)
       .skip(skip);
 
-    const totalCount = await Booking.countDocuments();
+    const totalCount = await Booking.countDocuments({ user: userId });
 
     res.status(StatusCodes.OK).json({
       success: true,

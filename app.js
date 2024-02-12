@@ -1,4 +1,6 @@
 const express = require("express");
+const https = require('https');
+const fs = require('fs');
 const mongoSanitize = require("express-mongo-sanitize");
 require("dotenv").config();
 const path = require("path");
@@ -6,6 +8,12 @@ const morgan = require("morgan");
 const hpp = require("hpp");
 const xss = require("xss-clean");
 const helmet = require("helmet");
+
+const httpsOptions = {
+  key: fs.readFileSync(path.join(__dirname, 'ssl', 'server.key')),
+  cert: fs.readFileSync(path.join(__dirname, 'ssl', 'server.cert'))
+};
+
 // const passport = require('passport');
 
 const cors = require("cors");
@@ -79,6 +87,6 @@ app.get("/", (req, res) => {
   return res.status(200).json({ message: "Welcome to booking API project" });
 });
 
-app.listen(config.port, () => {
+https.createServer(httpsOptions, app).listen(config.port, () => {
   console.log(`backend is up & running on port ${config.port}`);
 });

@@ -93,7 +93,7 @@ if (config.NODE_ENV == "dev") {
     cert: fs.readFileSync("/root/certs/cert.pem", "utf-8"),
   };
   https.createServer(credentials, app).listen(config.port, () => {
-    console.log(`backend is up & running on port ${config.port}`);
+    console.log(`backend ${config.NODE_ENV} **** is up & running on port ${config.port}`);
   });
 } else {
   app.listen(config.port, () => {

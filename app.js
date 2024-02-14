@@ -1,6 +1,6 @@
 const express = require("express");
-// const https = require('https');
-// const fs = require('fs');
+const https = require("https");
+const fs = require("fs");
 const mongoSanitize = require("express-mongo-sanitize");
 require("dotenv").config();
 const path = require("path");
@@ -10,8 +10,8 @@ const xss = require("xss-clean");
 const helmet = require("helmet");
 
 // const httpsOptions = {
-//   key: fs.readFileSync(path.join(__dirname, 'ssl', 'server.key')),
-//   cert: fs.readFileSync(path.join(__dirname, 'ssl', 'server.cert'))
+//   key: fs.readFileSync(path.join(__dirname, "ssl", "localhost.key")),
+//   cert: fs.readFileSync(path.join(__dirname, "ssl", "localhost.cert")),
 // };
 
 // const passport = require('passport');
@@ -87,6 +87,16 @@ app.get("/", (req, res) => {
   return res.status(200).json({ message: "Welcome to booking API project" });
 });
 
-app.listen(config.port, () => {
-  console.log(`backend is up & running on port ${config.port}`);
-});
+if (config.NODE_ENV == "dev") {
+  const credentials = {
+    key: fs.readFileSync("/root/certs/privkey.pem", "utf-8"),
+    cert: fs.readFileSync("/root/certs/cert.pem", "utf-8"),
+  };
+  https.createServer(credentials, app).listen(config.port, () => {
+    console.log(`backend is up & running on port ${config.port}`);
+  });
+} else {
+  app.listen(config.port, () => {
+    console.log(`backend is up & running on port ${config.port}`);
+  });
+}

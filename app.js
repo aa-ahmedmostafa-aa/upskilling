@@ -87,13 +87,15 @@ app.get("/", (req, res) => {
   return res.status(200).json({ message: "Welcome to booking API project" });
 });
 
-if (config.NODE_ENV == "dev") {
+if (process.NODE_ENV == "dev") {
   const credentials = {
     key: fs.readFileSync("/root/certs/privkey.pem", "utf-8"),
     cert: fs.readFileSync("/root/certs/cert.pem", "utf-8"),
   };
   https.createServer(credentials, app).listen(config.port, () => {
-    console.log(`backend ${config.NODE_ENV} **** is up & running on port ${config.port}`);
+    console.log(
+      `backend ${config.NODE_ENV} **** is up & running on port ${config.port}`
+    );
   });
 } else {
   app.listen(config.port, () => {

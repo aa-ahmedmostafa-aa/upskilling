@@ -87,7 +87,7 @@ app.get("/", (req, res) => {
   return res.status(200).json({ message: "Welcome to booking API project" });
 });
 
-if (process.NODE_ENV == "dev") {
+if (process.env.NODE_ENV == "dev") {
   const credentials = {
     key: fs.readFileSync("/root/certs/privkey.pem", "utf-8"),
     cert: fs.readFileSync("/root/certs/cert.pem", "utf-8"),
